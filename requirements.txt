@@ -1,0 +1,24 @@
+# Python dependencies for NVDA Audio Volume Control Add-on
+# These libraries are required for Windows audio session management
+
+# pycaw - Python Core Audio Windows Library
+# Provides Python wrapper for Windows Audio Session API (WASAPI)
+pycaw>=20240210
+
+# comtypes - Pure Python COM package
+# Required for COM interface access to Windows audio APIs
+comtypes>=1.4.0
+
+# psutil - Cross-platform process and system utilities
+# Used to get process names from PIDs
+psutil>=5.9.0
+
+# Note: These dependencies should be bundled with the add-on
+# or installed in NVDA's Python environment.
+#
+# To bundle dependencies with the add-on:
+#   pip install -r requirements.txt --target addon/lib
+#
+# To install in NVDA's Python environment:
+#   cd "C:\Program Files (x86)\NVDA\Python"
+#   python -m pip install -r requirements.txt
