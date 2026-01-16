@@ -106,7 +106,15 @@ class VolumeControlDialog(wx.Dialog):
         
         self.SetSizer(mainSizer)
         self.Fit()
-        self.Center()
+        self.CenterOnScreen()
+        
+        # Ensure dialog is not minimized and has focus
+        self.Show()
+        self.Raise()
+        self.SetFocus()
+        
+        # Explicitly bind Escape key to close
+        self.Bind(wx.EVT_CHAR_HOOK, self.OnCharHook)
         
         self.SetMinSize((450, 450))
     
@@ -251,3 +259,10 @@ class VolumeControlDialog(wx.Dialog):
             ui.message(f"Reset {count} applications to default")
         except:
             pass
+
+    def OnCharHook(self, event):
+        """Handle key presses"""
+        if event.GetKeyCode() == wx.WXK_ESCAPE:
+            self.Close()
+        else:
+            event.Skip()

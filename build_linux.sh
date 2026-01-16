@@ -1,94 +1,54 @@
 #!/bin/bash
 set -e
 
-echo "========================================="
-echo "  BUILD NVDA ADD-ON: AudioVolumeControl"
-echo "  (Com Dependency Shading)"
-echo "========================================="
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR"
 
-BASE_DIR="/root/AddonTemplate-master"
-TARGET_DIR="$BASE_DIR/addon/globalPlugins/audioVolumeControl"
-
-cd "$BASE_DIR"
-
-echo "1. Limpando ambiente e instalando ferramentas de build..."
-if command -v apt-get &> /dev/null; then
-    apt-get update && apt-get install -y gettext zip unzip
-elif command -v dnf &> /dev/null; then
-    dnf install -y gettext zip unzip
-fi
-
-scons -c > /dev/null 2>&1 || true
-rm -rf addon/locale
-rm -rf "$TARGET_DIR/pycaw"*
-rm -rf "$TARGET_DIR/dep_pycaw"*
-rm -rf "$TARGET_DIR/comtypes"*
-rm -rf "$TARGET_DIR/psutil"*
-rm -rf "$TARGET_DIR/__pycache__"
-rm -f *.nvda-addon
-echo "   OK"
-
-echo "2. Instalando dependências..."
-echo "2. Baixando dependências Windows (32-bit) para cross-compile..."
-mkdir -p temp_wheels
-pip3 download \
-    --dest temp_wheels \
-    --platform win32 \
-    --python-version 3.11 \
-    --only-binary=:all: \
-    --no-deps \
-    pycaw comtypes psutil
-
-echo "   Extraindo wheels..."
-for wheel in temp_wheels/*.whl; do
-    python3 -c "import zipfile, sys; zipfile.ZipFile(sys.argv[1]).extractall(sys.argv[2])" "$wheel" "$TARGET_DIR/"
-done
-rm -rf temp_wheels
-echo "   OK"
-
-echo "3. Aplicando 'Shading' no pycaw (Renomeando para dep_pycaw)..."
-if [ -d "$TARGET_DIR/pycaw" ]; then
-    mv "$TARGET_DIR/pycaw" "$TARGET_DIR/dep_pycaw"
-    
-    find "$TARGET_DIR/dep_pycaw" -name "*.py" -exec sed -i 's/from pycaw/from dep_pycaw/g' {} +
-    find "$TARGET_DIR/dep_pycaw" -name "*.py" -exec sed -i 's/import pycaw/import dep_pycaw/g' {} +
-    
-    echo "   ✓ Renomeado pycaw -> dep_pycaw e corrigido imports internos"
-else
-    echo "❌ FALHA: Pasta pycaw não encontrada após extração!"
+ADDON_DIR=$(find . -type d -name "globalPlugins" -print -quit 2>/dev/null)
+if [ -z "$ADDON_DIR" ]; then
+    echo "Error: globalPlugins directory not found"
     exit 1
 fi
 
-echo "4. Limpando lixo..."
-rm -rf "$TARGET_DIR/"*.dist-info
-rm -rf "$TARGET_DIR/"bin
-echo "   OK"
+PLUGIN_DIR=$(find "$ADDON_DIR" -mindepth 1 -maxdepth 1 -type d -print -quit)
+if [ -z "$PLUGIN_DIR" ]; then
+    echo "Error: Plugin directory not found inside globalPlugins"
+    exit 1
+fi
 
-echo "5. Compilando o arquivo .nvda-addon..."
+LIB_DIR="$PLUGIN_DIR/lib"
+mkdir -p "$LIB_DIR"
+
+echo "Installing dependencies to $LIB_DIR..."
+
+rm -rf "$LIB_DIR/psutil" "$LIB_DIR/avc_pycaw" "$LIB_DIR/pycaw"
+
+TMP_DIR=$(mktemp -d)
+pip3 download psutil --platform win32 --python-version 311 --only-binary=:all: -d "$TMP_DIR" --quiet
+PSUTIL_WHL=$(find "$TMP_DIR" -name "psutil*.whl" -print -quit)
+if [ -n "$PSUTIL_WHL" ]; then
+    unzip -q "$PSUTIL_WHL" -d "$TMP_DIR/psutil_extracted"
+    mv "$TMP_DIR/psutil_extracted/psutil" "$LIB_DIR/psutil"
+    echo "psutil installed with Windows binary"
+fi
+
+pip3 install pycaw -t "$TMP_DIR/pycaw_tmp" --quiet --no-compile
+if [ -d "$TMP_DIR/pycaw_tmp/pycaw" ]; then
+    mv "$TMP_DIR/pycaw_tmp/pycaw" "$LIB_DIR/avc_pycaw"
+    find "$LIB_DIR/avc_pycaw" -name "*.py" -exec sed -i 's/from pycaw\./from avc_pycaw./g; s/import pycaw/import avc_pycaw/g' {} \;
+    find "$LIB_DIR/avc_pycaw" -name "*.py" -exec sed -i 's/import comtypes/import comtypes/g' {} \;
+    echo "pycaw vendorized as avc_pycaw"
+fi
+
+rm -rf "$TMP_DIR"
+
+find "$LIB_DIR" -type d -name "tests" -exec rm -rf {} + 2>/dev/null || true
+find "$LIB_DIR" -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
+find "$LIB_DIR" -name "*.pyc" -delete 2>/dev/null || true
+
+rm -f ./*.nvda-addon
+scons -c
 scons
-echo "   OK"
 
-echo "6. Verificando resultado..."
-FILE_NAME=$(ls *.nvda-addon 2>/dev/null | head -n 1)
-
-if [ -z "$FILE_NAME" ]; then
-    echo "❌ FALHA: Arquivo não foi criado!"
-    exit 1
-fi
-
-SIZE_BYTES=$(stat -c%s "$FILE_NAME")
-SIZE_MB=$(echo "scale=2; $SIZE_BYTES/1024/1024" | bc 2>/dev/null || echo "N/A")
-
-if [ "$SIZE_BYTES" -lt 1000000 ]; then
-    echo "⚠️  ALERTA: Arquivo muito pequeno ($SIZE_MB MB). Dependências podem estar faltando!"
-else
-    echo "✅ SUCESSO! Arquivo criado:"
-    echo "   Nome: $FILE_NAME"
-    echo "   Tamanho: ~$SIZE_MB MB"
-fi
-
-echo ""
-echo "========================================="
-echo "Para baixar no Windows:"
-echo "python3 -m http.server 8000"
-echo "========================================="
+echo "Build complete!"
+ls -la ./*.nvda-addon 2>/dev/null || echo "No addon file found"

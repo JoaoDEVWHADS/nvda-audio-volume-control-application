@@ -1,11 +1,3 @@
-import sys
-import os
-
-_current_dir = os.path.dirname(__file__)
-_addon_lib = os.path.abspath(os.path.join(_current_dir, '..', '..', 'lib'))
-if os.path.exists(_addon_lib) and _addon_lib not in sys.path:
-    sys.path.insert(0, _addon_lib)
-
 import globalPluginHandler
 import logging
 import addonHandler
@@ -20,7 +12,7 @@ try:
 except ImportError:
     NVDA_AVAILABLE = False
 
-from .volumeControlDialog import VolumeControlDialog
+from .updateChecker import UpdateChecker, CURRENT_VERSION, show_update_dialog
 
 log = logging.getLogger(__name__)
 
@@ -34,23 +26,40 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
     def __init__(self):
         super().__init__()
         log.info("Audio Volume Control add-on initialized")
-        
-        if not NVDA_AVAILABLE:
-            log.warning("NVDA environment not detected - limited functionality")
+        self.updateChecker = None
+        if NVDA_AVAILABLE:
+            try:
+                self.updateChecker = UpdateChecker(self._on_update_available)
+                self.updateChecker.start()
+                log.info("Update checker started")
+            except Exception as e:
+                log.error(f"Failed to start update checker: {e}")
+        else:
+            log.warning("NVDA environment not detected")
     
     def terminate(self):
+        if self.updateChecker:
+            try:
+                self.updateChecker.stop()
+            except Exception as e:
+                log.error(f"Error stopping update checker: {e}")
         log.info("Audio Volume Control add-on terminated")
         super().terminate()
+    
+    def _on_update_available(self, version, download_url, release_info):
+        log.info(f"Update available: {version}")
+        try:
+            show_update_dialog(CURRENT_VERSION, version, download_url, release_info)
+        except Exception as e:
+            log.error(f"Error showing update dialog: {e}")
     
     def script_showVolumeControl(self, gesture):
         try:
             if not NVDA_AVAILABLE:
-                log.error("Cannot show dialog - NVDA environment not available")
+                log.error("Cannot show dialog - NVDA not available")
                 return
-            
             log.debug("Opening volume control dialog")
             wx.CallAfter(self._showDialog)
-            
         except Exception as e:
             log.error(f"Failed to show volume control dialog: {e}", exc_info=True)
             try:
@@ -60,6 +69,12 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
     
     def _showDialog(self):
         try:
+            import sys
+            import os
+            lib_path = os.path.join(os.path.dirname(__file__), 'lib')
+            if os.path.exists(lib_path) and lib_path not in sys.path:
+                sys.path.insert(0, lib_path)
+            from .volumeControlDialog import VolumeControlDialog
             dialog = VolumeControlDialog(gui.mainFrame)
             dialog.ShowModal()
             dialog.Destroy()
