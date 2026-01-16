@@ -54,6 +54,14 @@ chmod +x build_linux.sh
 
 This downloads Windows binaries for psutil and generates the `.nvda-addon` package.
 
+## Documentation
+
+For more detailed documentation, see the [docs](./docs/) folder:
+- [BUILD_INSTRUCTIONS.md](./docs/BUILD_INSTRUCTIONS.md) - Detailed build instructions
+- [DEPENDENCIES.md](./docs/DEPENDENCIES.md) - Information about vendorized libraries
+- [HOW_TO_BUILD.md](./docs/HOW_TO_BUILD.md) - Step-by-step build guide
+- [TROUBLESHOOTING.md](./docs/TROUBLESHOOTING.md) - Common issues and solutions
+
 ## Technical Details
 
 This add-on uses:
