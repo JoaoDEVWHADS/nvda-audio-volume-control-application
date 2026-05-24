@@ -124,6 +124,11 @@ def fetch_latest_release() -> dict:
                 download_url = asset.get('browser_download_url')
                 # Extract version from asset name
                 version_tuple = parse_version(asset_name)
+                if version_tuple == (0, 0, 0) or version_tuple[0] < 2000:
+                    tag_name = data.get('tag_name', '')
+                    version_tuple_tag = parse_version(tag_name)
+                    if version_tuple_tag != (0, 0, 0):
+                        version_tuple = version_tuple_tag
                 if version_tuple[0] >= 2000:
                     if len(version_tuple) >= 4:
                         version = f"{version_tuple[0]}.{version_tuple[1]:02d}.{version_tuple[2]:02d}.{version_tuple[3]}"
