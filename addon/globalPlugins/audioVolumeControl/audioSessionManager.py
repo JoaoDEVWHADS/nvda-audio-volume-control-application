@@ -9,6 +9,44 @@ _lib_dir = os.path.join(_current_dir, 'lib')
 if os.path.exists(_lib_dir):
     if _lib_dir not in sys.path:
         sys.path.insert(0, _lib_dir)
+    
+    # Dynamic psutil C extension resolver bootstrap
+    try:
+        import struct
+        import shutil
+        _psutil_dir = os.path.join(_lib_dir, 'psutil')
+        if os.path.exists(_psutil_dir):
+            is_64bit = struct.calcsize("P") * 8 == 64
+            plat_tag = "win_amd64" if is_64bit else "win32"
+            py_ver = f"{sys.version_info.major}{sys.version_info.minor}"
+            py_tag = f"cp{py_ver}"
+            
+            src_name = f"_psutil_windows.{py_tag}-{plat_tag}.pyd"
+            src_path = os.path.join(_psutil_dir, src_name)
+            dest_path = os.path.join(_psutil_dir, "_psutil_windows.pyd")
+            
+            if os.path.exists(src_path):
+                copy_needed = True
+                if os.path.exists(dest_path):
+                    try:
+                        if os.path.getsize(src_path) == os.path.getsize(dest_path):
+                            copy_needed = False
+                    except:
+                        pass
+                
+                if copy_needed:
+                    try:
+                        if os.path.exists(dest_path):
+                            os.remove(dest_path)
+                        shutil.copy2(src_path, dest_path)
+                        logging.getLogger(__name__).info(f"VolumeControl: Copied C extension {src_name}")
+                    except Exception as copy_err:
+                        logging.getLogger(__name__).error(f"VolumeControl: Failed to copy C extension: {copy_err}")
+            else:
+                logging.getLogger(__name__).error(f"VolumeControl: Tagged C extension not found: {src_path}")
+    except Exception as e:
+        logging.getLogger(__name__).error(f"VolumeControl: Error during psutil bootstrap: {e}")
+
     modules_to_remove = [key for key in list(sys.modules.keys()) if key.startswith('psutil')]
     for mod in modules_to_remove:
         del sys.modules[mod]

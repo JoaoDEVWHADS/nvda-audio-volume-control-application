@@ -1,0 +1,130 @@
+#
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Release: {}"
+msgstr "Versión: {}"
+
+msgid "&Download and Install"
+msgstr "&Descargar e Instalar"
+
+msgid "&Close"
+msgstr "&Cerrar"
+
+msgid "Downloading update... Please wait."
+msgstr "Descargando actualización... Por favor, espera."
+
+msgid "Error: Failed to download update"
+msgstr "Error: fallo al descargar la actualización"
+
+msgid "Error: Failed to install update"
+msgstr "Error: fallo al instalar la actualización"
+
+msgid "Error: Update failed. Check NVDA log for details."
+msgstr "Error: fallo en la actualización. Consulta el log de NVDA para más detalles."
+
+msgid "Update installed successfully! NVDA needs to restart."
+msgstr "¡Actualización instalada con éxito! NVDA debe reiniciarse."
+
+msgid "Update Installed"
+msgstr "Actualización Instalada"
+
+msgid "Update failed because files are in use.\n"
+"\n"
+"Please RESTART NVDA and try updating immediately,\n"
+"\n"
+"WITHOUT opening the add-on settings."
+msgstr "La actualización falló porque los archivos están en uso.\n"
+"\n"
+"Por favor, REINICIA NVDA e intenta actualizar inmediatamente,\n"
+"\n"
+"SIN abrir la configuración del complemento."
+
+msgid "Update Failed - Files Locked"
+msgstr "Fallo en la actualización - Archivos bloqueados"
+
+msgid "Update failed because files are in use.\n"
+"\n"
+"Please RESTART NVDA and try updating immediately,\n"
+"\n"
+"WITHOUT opening the volume control dialog."
+msgstr "La actualización falló porque los archivos están en uso.\n"
+"\n"
+"Por favor, REINICIA NVDA e intenta actualizar inmediatamente,\n"
+"\n"
+"SIN abrir el diálogo del control de volumen."
+
+msgid "Audio Volume Control"
+msgstr "Control de Volumen de Audio"
+
+msgid "Show the per-application volume control dialog"
+msgstr "Muestra el diálogo de control de volumen por aplicación"
+
+msgid "Application Volume Control"
+msgstr "Control de Volumen de Aplicaciones"
+
+msgid "Select an application from the list, then press TAB to access volume controls."
+msgstr "Seleccione una aplicación de la lista, luego presione TAB para acceder a los controles de volumen."
+
+msgid "&Applications:"
+msgstr "&Aplicaciones:"
+
+msgid "Audio Control"
+msgstr "Control de Audio"
+
+msgid "&Volume:"
+msgstr "&Volumen:"
+
+msgid "&Mute"
+msgstr "S&ilenciar"
+
+msgid "&Refresh List"
+msgstr "&Actualizar Lista"
+
+msgid "R&eset Defaults"
+msgstr "R&establecer Valores"
+
+msgid "Error: Required dependencies (pycaw, psutil) are not installed"
+msgstr "Error: Las dependencias requeridas (pycaw, psutil) no están instaladas"
+
+msgid "Dependencies not available"
+msgstr "Dependencias no disponibles"
+
+msgid "No applications found"
+msgstr "No se encontraron aplicaciones"
+
+msgid "Error: {}"
+msgstr "Error: {}"
+
+msgid "Reset {count} applications to default"
+msgstr "Restablecidas {count} aplicaciones a los valores predeterminados"
+
+msgid "Update Available - Per-Application Volume Control"
+msgstr "Actualización disponible - Control de Volumen de Audio"
+
+msgid "A new version of Per-Application Volume Control is available!\n"
+"\n"
+"Current version: {current}\n"
+"New version: {new}\n"
+"\n"
+"Click 'Download and Install' to update automatically."
+msgstr "¡Una nueva versión de Control de Volumen de Audio está disponible!\n"
+"\n"
+"Versión actual: {current}\n"
+"Versión nueva: {new}\n"
+"\n"
+"Haz clic en 'Descargar e Instalar' para actualizar automáticamente."
+
+msgid "Per-Application Volume Control has been updated to version {version}.\n"
+"\n"
+"NVDA must be restarted for the update to take effect.\n"
+"\n"
+"Restart NVDA now?"
+msgstr "Control de Volumen de Audio se ha actualizado a la versión {version}.\n"
+"\n"
+"NVDA debe reiniciarse para que los cambios surtan efecto.\n"
+"\n"
+"¿Reiniciar NVDA ahora?"
+

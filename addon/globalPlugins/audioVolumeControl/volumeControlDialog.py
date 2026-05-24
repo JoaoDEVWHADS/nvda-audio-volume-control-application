@@ -1,5 +1,7 @@
 import wx
 import logging
+import addonHandler
+addonHandler.initTranslation()
 
 try:
     import ui
@@ -20,7 +22,7 @@ class VolumeControlDialog(wx.Dialog):
     def __init__(self, parent):
         super().__init__(
             parent,
-            title="Application Volume Control",
+            title=_("Application Volume Control"),
             style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER
         )
         
@@ -36,14 +38,14 @@ class VolumeControlDialog(wx.Dialog):
     def InitUI(self):
         mainSizer = wx.BoxSizer(wx.VERTICAL)
         
-        instructionsText = (
+        instructionsText = _(
             "Select an application from the list, then press TAB to access volume controls."
         )
         instructionsLabel = wx.StaticText(self, label=instructionsText)
         instructionsLabel.Wrap(500)
         mainSizer.Add(instructionsLabel, flag=wx.ALL, border=10)
         
-        listLabel = wx.StaticText(self, label="&Applications:")
+        listLabel = wx.StaticText(self, label=_("&Applications:"))
         mainSizer.Add(listLabel, flag=wx.LEFT | wx.RIGHT | wx.TOP, border=10)
         
         self.appList = wx.ListBox(
@@ -59,10 +61,10 @@ class VolumeControlDialog(wx.Dialog):
             border=10
         )
         
-        controlsSizer = wx.StaticBoxSizer(wx.VERTICAL, self, "Audio Control")
+        controlsSizer = wx.StaticBoxSizer(wx.VERTICAL, self, _("Audio Control"))
         
         sliderSizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.volLabel = wx.StaticText(self, label="&Volume:")
+        self.volLabel = wx.StaticText(self, label=_("&Volume:"))
         sliderSizer.Add(self.volLabel, flag=wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, border=5)
         
         self.volSlider = wx.Slider(
@@ -78,7 +80,7 @@ class VolumeControlDialog(wx.Dialog):
         
         controlsSizer.Add(sliderSizer, flag=wx.EXPAND | wx.ALL, border=5)
         
-        self.muteChk = wx.CheckBox(self, label="&Mute")
+        self.muteChk = wx.CheckBox(self, label=_("&Mute"))
         self.muteChk.Bind(wx.EVT_CHECKBOX, self.OnMuteChange)
         controlsSizer.Add(self.muteChk, flag=wx.ALL, border=5)
         
@@ -86,15 +88,15 @@ class VolumeControlDialog(wx.Dialog):
         
         buttonSizer = wx.BoxSizer(wx.HORIZONTAL)
         
-        refreshBtn = wx.Button(self, label="&Refresh List")
+        refreshBtn = wx.Button(self, label=_("&Refresh List"))
         refreshBtn.Bind(wx.EVT_BUTTON, self.OnRefresh)
         buttonSizer.Add(refreshBtn, flag=wx.RIGHT, border=5)
         
-        resetBtn = wx.Button(self, label="R&eset Defaults")
+        resetBtn = wx.Button(self, label=_("R&eset Defaults"))
         resetBtn.Bind(wx.EVT_BUTTON, self.OnReset)
         buttonSizer.Add(resetBtn, flag=wx.RIGHT, border=5)
         
-        closeBtn = wx.Button(self, wx.ID_CLOSE, "&Close")
+        closeBtn = wx.Button(self, wx.ID_CLOSE, _("&Close"))
         closeBtn.Bind(wx.EVT_BUTTON, lambda e: self.Close())
         buttonSizer.Add(closeBtn)
         
@@ -121,9 +123,9 @@ class VolumeControlDialog(wx.Dialog):
     def LoadSessions(self):
         try:
             if not AudioSessionManager.check_dependencies():
-                ui.message("Error: Required dependencies (pycaw, psutil) are not installed")
+                ui.message(_("Error: Required dependencies (pycaw, psutil) are not installed"))
                 self.appList.Clear()
-                self.appList.Append("Dependencies not available")
+                self.appList.Append(_("Dependencies not available"))
                 self.DisableControls()
                 return
             
@@ -131,7 +133,7 @@ class VolumeControlDialog(wx.Dialog):
             self.appList.Clear()
             
             if not self.sessions:
-                self.appList.Append("No applications found")
+                self.appList.Append(_("No applications found"))
                 self.DisableControls()
                 return
             
@@ -147,7 +149,7 @@ class VolumeControlDialog(wx.Dialog):
         except Exception as e:
             log.error(f"Failed to load sessions: {e}")
             self.appList.Clear()
-            self.appList.Append(f"Error: {str(e)}")
+            self.appList.Append(_("Error: {}").format(str(e)))
             self.DisableControls()
 
     def DisableControls(self):
@@ -256,7 +258,7 @@ class VolumeControlDialog(wx.Dialog):
         self.OnSelectionChange(None)
         
         try:
-            ui.message(f"Reset {count} applications to default")
+            ui.message(_("Reset {count} applications to default").format(count=count))
         except:
             pass
 
