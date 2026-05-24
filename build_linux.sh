@@ -30,13 +30,20 @@ echo "Downloading psutil wheels..."
 for pyver in 37 38 39 310 311 312 313; do
     if [ "$pyver" = "37" ]; then
         abi="cp37m"
+    elif [ "$pyver" = "313" ]; then
+        abi="cp313t"
     else
-        abi="cp$pyver"
+        abi="abi3"
     fi
     pip3 download psutil --platform win32 --python-version "$pyver" --abi "$abi" --only-binary=:all: --implementation cp -d "$TMP_DIR" --quiet || true
 done
 for pyver in 311 312 313; do
-    pip3 download psutil --platform win_amd64 --python-version "$pyver" --abi "cp$pyver" --only-binary=:all: --implementation cp -d "$TMP_DIR" --quiet || true
+    if [ "$pyver" = "313" ]; then
+        abi="cp313t"
+    else
+        abi="abi3"
+    fi
+    pip3 download psutil --platform win_amd64 --python-version "$pyver" --abi "$abi" --only-binary=:all: --implementation cp -d "$TMP_DIR" --quiet || true
 done
 
 ANY_WHL=$(find "$TMP_DIR" -name "psutil*.whl" -print -quit)

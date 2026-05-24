@@ -18,10 +18,13 @@ if os.path.exists(_lib_dir):
         if os.path.exists(_psutil_dir):
             is_64bit = struct.calcsize("P") * 8 == 64
             plat_tag = "win_amd64" if is_64bit else "win32"
-            py_ver = f"{sys.version_info.major}{sys.version_info.minor}"
-            py_tag = f"cp{py_ver}"
-            
-            src_name = f"_psutil_windows.{py_tag}-{plat_tag}.pyd"
+            py_ver_num = sys.version_info.major * 100 + sys.version_info.minor
+            # CPython 3.7 to 3.12 use the cp37 stable ABI wheel
+            if 307 <= py_ver_num <= 312:
+                src_name = f"_psutil_windows.cp37-{plat_tag}.pyd"
+            else:
+                py_tag = f"cp{sys.version_info.major}{sys.version_info.minor}"
+                src_name = f"_psutil_windows.{py_tag}-{plat_tag}.pyd"
             src_path = os.path.join(_psutil_dir, src_name)
             dest_path = os.path.join(_psutil_dir, "_psutil_windows.pyd")
             
