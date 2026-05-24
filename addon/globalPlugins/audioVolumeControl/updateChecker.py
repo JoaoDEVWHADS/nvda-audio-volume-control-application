@@ -367,7 +367,7 @@ class UpdateNotificationDialog(wx.Dialog):
                  download_url: str, release_info: dict = None):
         super().__init__(
             parent,
-            title=_("Update Available - Audio Volume Control"),
+            title=_("Update Available - Per-Application Volume Control"),
             style=wx.DEFAULT_DIALOG_STYLE
         )
         
@@ -385,7 +385,7 @@ class UpdateNotificationDialog(wx.Dialog):
         
         # Message
         message = _(
-            "A new version of Audio Volume Control is available!\n\n"
+            "A new version of Per-Application Volume Control is available!\n\n"
             "Current version: {current}\n"
             "New version: {new}\n\n"
             "Click 'Download and Install' to update automatically."
@@ -466,7 +466,7 @@ class UpdateNotificationDialog(wx.Dialog):
         ui.message(_("Update installed successfully! NVDA needs to restart."))
         
         result = gui.messageBox(
-            _("Audio Volume Control has been updated to version {version}.\n\n"
+            _("Per-Application Volume Control has been updated to version {version}.\n\n"
               "NVDA must be restarted for the update to take effect.\n\n"
               "Restart NVDA now?").format(version=self.new_version),
             _("Update Installed"),
