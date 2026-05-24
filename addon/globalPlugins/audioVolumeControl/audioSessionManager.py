@@ -6,11 +6,15 @@ import os
 _current_dir = os.path.dirname(__file__)
 _lib_dir = os.path.join(_current_dir, 'lib')
 
-if os.path.exists(_lib_dir):
-    if _lib_dir not in sys.path:
-        sys.path.insert(0, _lib_dir)
-    
-    # Dynamic psutil C extension resolver bootstrap
+# 1. Try importing psutil directly from the NVDA core environment first
+try:
+    import psutil
+    _psutil_available = True
+except ImportError:
+    _psutil_available = False
+
+if os.path.exists(_lib_dir) and not _psutil_available:
+    # Dynamic psutil C extension resolver bootstrap (fallback for older NVDA versions)
     try:
         import struct
         import shutil
@@ -19,6 +23,7 @@ if os.path.exists(_lib_dir):
             is_64bit = struct.calcsize("P") * 8 == 64
             plat_tag = "win_amd64" if is_64bit else "win32"
             py_ver_num = sys.version_info.major * 100 + sys.version_info.minor
+            
             # CPython 3.7+ use the cp37 stable ABI wheel
             if py_ver_num >= 307:
                 src_name = f"_psutil_windows.cp37-{plat_tag}.pyd"
@@ -79,28 +84,33 @@ if os.path.exists(_lib_dir):
 try:
     from avc_pycaw.utils import AudioUtilities
     
-    # Temporarily set DLL path for importing psutil
+    # Temporarily set DLL path for importing psutil if using the bundled version
     dll_dir_cookie = None
     old_path = os.environ.get('PATH', '')
-    _psutil_dir = os.path.join(_lib_dir, 'psutil')
-    if os.path.exists(_psutil_dir):
-        try:
-            os.environ['PATH'] = _psutil_dir + os.pathsep + old_path
-            if hasattr(os, 'add_dll_directory'):
-                dll_dir_cookie = os.add_dll_directory(_psutil_dir)
-        except:
-            pass
+    if not _psutil_available:
+        if os.path.exists(_lib_dir):
+            if _lib_dir not in sys.path:
+                sys.path.insert(0, _lib_dir)
+        _psutil_dir = os.path.join(_lib_dir, 'psutil')
+        if os.path.exists(_psutil_dir):
+            try:
+                os.environ['PATH'] = _psutil_dir + os.pathsep + old_path
+                if hasattr(os, 'add_dll_directory'):
+                    dll_dir_cookie = os.add_dll_directory(_psutil_dir)
+            except:
+                pass
             
     try:
         import psutil
         DEPENDENCIES_AVAILABLE = True
     finally:
-        if dll_dir_cookie:
-            try:
-                dll_dir_cookie.close()
-            except:
-                pass
-        os.environ['PATH'] = old_path
+        if not _psutil_available:
+            if dll_dir_cookie:
+                try:
+                    dll_dir_cookie.close()
+                except:
+                    pass
+            os.environ['PATH'] = old_path
 except ImportError as e:
     DEPENDENCIES_AVAILABLE = False
     logging.getLogger(__name__).error(f"Failed to import dependencies: {e}")
