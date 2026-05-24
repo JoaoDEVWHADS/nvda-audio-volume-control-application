@@ -27,11 +27,16 @@ TMP_DIR=$(mktemp -d)
 mkdir -p "$LIB_DIR/psutil"
 
 echo "Downloading psutil wheels..."
-for pyver in 37 38 39 310 311; do
-    pip3 download psutil --platform win32 --python-version "$pyver" --only-binary=:all: --implementation cp -d "$TMP_DIR" --quiet || true
+for pyver in 37 38 39 310 311 312 313; do
+    if [ "$pyver" = "37" ]; then
+        abi="cp37m"
+    else
+        abi="cp$pyver"
+    fi
+    pip3 download psutil --platform win32 --python-version "$pyver" --abi "$abi" --only-binary=:all: --implementation cp -d "$TMP_DIR" --quiet || true
 done
 for pyver in 311 312 313; do
-    pip3 download psutil --platform win_amd64 --python-version "$pyver" --only-binary=:all: --implementation cp -d "$TMP_DIR" --quiet || true
+    pip3 download psutil --platform win_amd64 --python-version "$pyver" --abi "cp$pyver" --only-binary=:all: --implementation cp -d "$TMP_DIR" --quiet || true
 done
 
 ANY_WHL=$(find "$TMP_DIR" -name "psutil*.whl" -print -quit)
@@ -46,8 +51,9 @@ for whl in "$TMP_DIR"/psutil*.whl; do
     if [ -f "$whl" ]; then
         WHL_NAME=$(basename "$whl" .whl)
         IFS='-' read -ra PARTS <<< "$WHL_NAME"
-        PY_TAG="${PARTS[2]}"
-        PLAT_TAG="${PARTS[4]}"
+        LEN=${#PARTS[@]}
+        PY_TAG="${PARTS[$((LEN-3))]}"
+        PLAT_TAG="${PARTS[$((LEN-1))]}"
         
         EXT_DIR="$TMP_DIR/extract_${WHL_NAME}"
         mkdir -p "$EXT_DIR"
