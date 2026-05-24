@@ -33,7 +33,11 @@ GITHUB_API_URL = "https://api.github.com/repos/JoaoDEVWHADS/nvda-audio-volume-co
 USER_AGENT = "NVDA-AudioVolumeControl-UpdateChecker/1.0"
 
 # Current version - must match buildVars.py addon_version
-CURRENT_VERSION = "2026.01.16"
+try:
+    import addonHandler
+    CURRENT_VERSION = addonHandler.getCodeAddon().manifest.get('version', '2026.01.16')
+except Exception:
+    CURRENT_VERSION = "2026.01.16"
 
 # Add-on name for installation
 ADDON_NAME = "audioVolumeControl"
@@ -44,21 +48,32 @@ def parse_version(version_string: str) -> tuple:
     Parse version string into comparable tuple.
     
     Handles formats like:
-    - "2026.01.12"
-    - "audioVolumeControl-2026.01.12.nvda-addon"
-    - "Version: 2026-12-01"
+    - "2026.01.16"
+    - "2026.01.18.1"
+    - "2026.05.24.1221"
+    - "audioVolumeControl-2026.05.24.1221.nvda-addon"
     
-    Returns tuple of integers for comparison, e.g. (2026, 1, 12)
+    Returns tuple of integers for comparison
     """
-    # Extract version numbers from string
-    match = re.search(r'(\d{4})[\.\-](\d{1,2})[\.\-](\d{1,2})', version_string)
+    match = re.search(r'(\d{4})[\.\-](\d{1,2})[\.\-](\d{1,2})(?:[\.\-_](\d+))?', version_string)
     if match:
-        return tuple(int(x) for x in match.groups())
+        parts = []
+        for x in match.groups():
+            if x is not None:
+                parts.append(int(x))
+        return tuple(parts)
+
+    match = re.search(r'(\d+)\.(\d+)\.(\d+)(?:\.(\d+))?', version_string)
+    if match:
+        parts = []
+        for x in match.groups():
+            if x is not None:
+                parts.append(int(x))
+        return tuple(parts)
     
-    # Fallback: try to get any numbers
     numbers = re.findall(r'\d+', version_string)
     if len(numbers) >= 3:
-        return tuple(int(x) for x in numbers[:3])
+        return tuple(int(x) for x in numbers[:4])
     
     return (0, 0, 0)
 
@@ -109,7 +124,16 @@ def fetch_latest_release() -> dict:
                 download_url = asset.get('browser_download_url')
                 # Extract version from asset name
                 version_tuple = parse_version(asset_name)
-                version = f"{version_tuple[0]}.{version_tuple[1]:02d}.{version_tuple[2]:02d}"
+                if version_tuple[0] >= 2000:
+                    if len(version_tuple) >= 4:
+                        version = f"{version_tuple[0]}.{version_tuple[1]:02d}.{version_tuple[2]:02d}.{version_tuple[3]}"
+                    else:
+                        version = f"{version_tuple[0]}.{version_tuple[1]:02d}.{version_tuple[2]:02d}"
+                else:
+                    if len(version_tuple) >= 4:
+                        version = f"{version_tuple[0]}.{version_tuple[1]}.{version_tuple[2]}.{version_tuple[3]}"
+                    else:
+                        version = f"{version_tuple[0]}.{version_tuple[1]}.{version_tuple[2]}"
                 break
         
         if not download_url:
