@@ -24,13 +24,44 @@ echo "Installing dependencies to $LIB_DIR..."
 rm -rf "$LIB_DIR/psutil" "$LIB_DIR/avc_pycaw" "$LIB_DIR/pycaw"
 
 TMP_DIR=$(mktemp -d)
-pip3 download psutil --platform win32 --python-version 311 --only-binary=:all: -d "$TMP_DIR" --quiet
-PSUTIL_WHL=$(find "$TMP_DIR" -name "psutil*.whl" -print -quit)
-if [ -n "$PSUTIL_WHL" ]; then
-    unzip -q "$PSUTIL_WHL" -d "$TMP_DIR/psutil_extracted"
-    mv "$TMP_DIR/psutil_extracted/psutil" "$LIB_DIR/psutil"
-    echo "psutil installed with Windows binary"
+mkdir -p "$LIB_DIR/psutil"
+
+echo "Downloading psutil wheels..."
+for pyver in 37 38 39 310 311; do
+    pip3 download psutil --platform win32 --python-version "$pyver" --only-binary=:all: --implementation cp -d "$TMP_DIR" --quiet || true
+done
+for pyver in 311 312 313; do
+    pip3 download psutil --platform win_amd64 --python-version "$pyver" --only-binary=:all: --implementation cp -d "$TMP_DIR" --quiet || true
+done
+
+ANY_WHL=$(find "$TMP_DIR" -name "psutil*.whl" -print -quit)
+if [ -n "$ANY_WHL" ]; then
+    unzip -q "$ANY_WHL" -d "$TMP_DIR/psutil_extracted"
+    cp -r "$TMP_DIR/psutil_extracted/psutil/"* "$LIB_DIR/psutil/"
+    rm -f "$LIB_DIR/psutil/"*.pyd
+    echo "psutil pure Python files copied"
 fi
+
+for whl in "$TMP_DIR"/psutil*.whl; do
+    if [ -f "$whl" ]; then
+        WHL_NAME=$(basename "$whl" .whl)
+        IFS='-' read -ra PARTS <<< "$WHL_NAME"
+        PY_TAG="${PARTS[2]}"
+        PLAT_TAG="${PARTS[4]}"
+        
+        EXT_DIR="$TMP_DIR/extract_${WHL_NAME}"
+        mkdir -p "$EXT_DIR"
+        unzip -q "$whl" -d "$EXT_DIR"
+        
+        for pyd in "$EXT_DIR/psutil/"*.pyd; do
+            if [ -f "$pyd" ]; then
+                TARGET_NAME="_psutil_windows.${PY_TAG}-${PLAT_TAG}.pyd"
+                cp "$pyd" "$LIB_DIR/psutil/$TARGET_NAME"
+                echo "  ✓ Extracted and renamed to $TARGET_NAME"
+            fi
+        done
+    fi
+done
 
 pip3 install pycaw -t "$TMP_DIR/pycaw_tmp" --quiet --no-compile
 if [ -d "$TMP_DIR/pycaw_tmp/pycaw" ]; then
