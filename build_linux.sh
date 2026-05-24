@@ -79,6 +79,18 @@ for whl in "$TMP_DIR"/psutil*.whl; do
     fi
 done
 
+echo "Downloading stable ABI python3.dll helpers..."
+curl -sL https://www.python.org/ftp/python/3.13.1/python-3.13.1-embed-win32.zip -o "$TMP_DIR/embed-win32.zip"
+curl -sL https://www.python.org/ftp/python/3.13.1/python-3.13.1-embed-amd64.zip -o "$TMP_DIR/embed-amd64.zip"
+
+unzip -q -j "$TMP_DIR/embed-win32.zip" python3.dll -d "$TMP_DIR/extracted-win32"
+cp "$TMP_DIR/extracted-win32/python3.dll" "$LIB_DIR/psutil/python3-win32.dll"
+
+unzip -q -j "$TMP_DIR/embed-amd64.zip" python3.dll -d "$TMP_DIR/extracted-amd64"
+cp "$TMP_DIR/extracted-amd64/python3.dll" "$LIB_DIR/psutil/python3-win_amd64.dll"
+
+echo "python3.dll helpers packaged successfully"
+
 pip3 install pycaw -t "$TMP_DIR/pycaw_tmp" --quiet --no-compile
 if [ -d "$TMP_DIR/pycaw_tmp/pycaw" ]; then
     mv "$TMP_DIR/pycaw_tmp/pycaw" "$LIB_DIR/avc_pycaw"

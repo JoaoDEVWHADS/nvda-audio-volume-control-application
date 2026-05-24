@@ -28,6 +28,28 @@ if os.path.exists(_lib_dir):
             src_path = os.path.join(_psutil_dir, src_name)
             dest_path = os.path.join(_psutil_dir, "_psutil_windows.pyd")
             
+            # Dynamic python3.dll resolver bootstrap for stable ABI support in embedded environments like NVDA
+            dll_src_name = f"python3-{plat_tag}.dll"
+            dll_src_path = os.path.join(_psutil_dir, dll_src_name)
+            dll_dest_path = os.path.join(_psutil_dir, "python3.dll")
+            if os.path.exists(dll_src_path):
+                dll_copy_needed = True
+                if os.path.exists(dll_dest_path):
+                    try:
+                        if os.path.getsize(dll_src_path) == os.path.getsize(dll_dest_path):
+                            dll_copy_needed = False
+                    except:
+                        pass
+                
+                if dll_copy_needed:
+                    try:
+                        if os.path.exists(dll_dest_path):
+                            os.remove(dll_dest_path)
+                        shutil.copy2(dll_src_path, dll_dest_path)
+                        logging.getLogger(__name__).info(f"VolumeControl: Copied stable ABI helper dll {dll_src_name}")
+                    except Exception as copy_err:
+                        logging.getLogger(__name__).error(f"VolumeControl: Failed to copy stable ABI helper dll: {copy_err}")
+            
             if os.path.exists(src_path):
                 copy_needed = True
                 if os.path.exists(dest_path):
