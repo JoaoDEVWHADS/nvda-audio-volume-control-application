@@ -29,6 +29,7 @@ mkdir -p "$LIB_DIR/psutil"
 echo "Downloading psutil wheels..."
 for pyver in 37 38 39 310 311 312 313; do
     if [ "$pyver" = "37" ]; then
+        pip3 download psutil --platform win32 --python-version "37" --abi "abi3" --only-binary=:all: --implementation cp -d "$TMP_DIR" --quiet || true
         abi="cp37m"
     elif [ "$pyver" = "313" ]; then
         abi="cp313t"
@@ -45,6 +46,8 @@ for pyver in 311 312 313; do
     fi
     pip3 download psutil --platform win_amd64 --python-version "$pyver" --abi "$abi" --only-binary=:all: --implementation cp -d "$TMP_DIR" --quiet || true
 done
+# Ensure we fetch the stable ABI cp37 wheel for AMD64
+pip3 download psutil --platform win_amd64 --python-version "37" --abi "abi3" --only-binary=:all: --implementation cp -d "$TMP_DIR" --quiet || true
 
 ANY_WHL=$(find "$TMP_DIR" -name "psutil*.whl" -print -quit)
 if [ -n "$ANY_WHL" ]; then
