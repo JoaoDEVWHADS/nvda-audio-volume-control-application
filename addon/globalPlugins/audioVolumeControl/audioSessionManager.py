@@ -78,8 +78,29 @@ if os.path.exists(_lib_dir):
 
 try:
     from avc_pycaw.utils import AudioUtilities
-    import psutil
-    DEPENDENCIES_AVAILABLE = True
+    
+    # Temporarily set DLL path for importing psutil
+    dll_dir_cookie = None
+    old_path = os.environ.get('PATH', '')
+    _psutil_dir = os.path.join(_lib_dir, 'psutil')
+    if os.path.exists(_psutil_dir):
+        try:
+            os.environ['PATH'] = _psutil_dir + os.pathsep + old_path
+            if hasattr(os, 'add_dll_directory'):
+                dll_dir_cookie = os.add_dll_directory(_psutil_dir)
+        except:
+            pass
+            
+    try:
+        import psutil
+        DEPENDENCIES_AVAILABLE = True
+    finally:
+        if dll_dir_cookie:
+            try:
+                dll_dir_cookie.close()
+            except:
+                pass
+        os.environ['PATH'] = old_path
 except ImportError as e:
     DEPENDENCIES_AVAILABLE = False
     logging.getLogger(__name__).error(f"Failed to import dependencies: {e}")
